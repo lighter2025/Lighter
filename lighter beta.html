@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lighter</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2em;
+            margin-bottom: 30px;
+        }
+        .score {
+            text-align: center;
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .score-label {
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            color: #ccc;
+        }
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            background-color: #111;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            transition: background 0.3s;
+        }
+        .checklist li:hover {
+            background-color: #1a1a1a;
+        }
+        input[type="checkbox"] {
+            transform: scale(1.3);
+            margin-right: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Lighter</h1>
+    <div class="score" id="score">0</div>
+    <div class="score-label">Качество дня</div>
+
+    <ul class="checklist" id="checklist">
+        <li><input type="checkbox">Выпил достаточное количество воды</li>
+        <li><input type="checkbox">Избегал сладких напитков</li>
+        <li><input type="checkbox">Ел богатую калием еду</li>
+        <li><input type="checkbox">Не превысил калораж</li>
+        <li><input type="checkbox">Избегал избытка соли</li>
+        <li><input type="checkbox">Не ел переработанную еду</li>
+        <li><input type="checkbox">Спал 7/8 часов</li>
+        <li><input type="checkbox">Избегал стресса</li>
+        <li><input type="checkbox">Сделал упражнения</li>
+        <li><input type="checkbox">Размял лимфу</li>
+    </ul>
+
+    <script>
+        const checklist = document.querySelectorAll('#checklist input[type="checkbox"]');
+        const scoreEl = document.getElementById('score');
+
+        // Загружаем сохранённые данные
+        const savedData = JSON.parse(localStorage.getItem('lighterData')) || { date: null, checked: [] };
+        const now = new Date();
+
+        function getResetTime(date) {
+            const reset = new Date(date);
+            reset.setHours(7, 0, 0, 0);
+            return reset;
+        }
+
+        let lastDate = savedData.date ? new Date(savedData.date) : null;
+        let resetTime = lastDate ? getResetTime(lastDate) : null;
+
+        // Если дата отсутствует или прошло 7 утра следующего дня — сброс
+        if (!lastDate || now > getResetTime(now) && now.toDateString() !== lastDate.toDateString()) {
+            savedData.checked = [];
+            savedData.date = now.toISOString();
+            localStorage.setItem('lighterData', JSON.stringify(savedData));
+        }
+
+        // Восстанавливаем галочки
+        checklist.forEach((checkbox, i) => {
+            checkbox.checked = savedData.checked[i] || false;
+        });
+
+        updateScore();
+
+        // Обновление счётчика
+        function updateScore() {
+            let score = Array.from(checklist).filter(cb => cb.checked).length;
+            scoreEl.textContent = score;
+        }
+
+        // Сохраняем при изменении
+        checklist.forEach((checkbox, i) => {
+            checkbox.addEventListener('change', () => {
+                savedData.checked[i] = checkbox.checked;
+                savedData.date = now.toISOString();
+                localStorage.setItem('lighterData', JSON.stringify(savedData));
+                updateScore();
+            });
+        });
+    </script>
+
+</body>
+</html>
